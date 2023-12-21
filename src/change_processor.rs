@@ -200,7 +200,14 @@ impl JobThreadContext {
                                 match instigating_source {
                                     InstigatingSource::Path(path) => {
                                         if let Some(Variant::String(value)) = changed_value {
-                                            fs::write(path, value).unwrap();
+                                            let script_metadata = fs::metadata(path).unwrap();
+
+                                            if !script_metadata.is_dir() {
+                                                fs::write(path, value).unwrap();
+                                            } else {
+                                                let init_path = path.join("init.lua");
+                                                fs::write(init_path, value).unwrap();
+                                            }
                                         } else {
                                             log::warn!("Cannot change Source to non-string value.");
                                         }
